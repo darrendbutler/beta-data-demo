@@ -205,4 +205,4 @@ grade_corr_chart
 
 # st.write(df)
 
-st.markdown("This project was created by Jason Rauchwerk and Darren (Ren) Butler for the [Interactive Data Science](https://dig.cmu.edu/ids2022) course at [Carnegie Mellon University](https://www.cmu.edu).")
+st.markdown("Learn more about BETA at our website [Carnegie Mellon University](https://www.cmu.edu).")
