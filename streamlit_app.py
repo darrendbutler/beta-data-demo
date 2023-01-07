@@ -36,6 +36,14 @@ def get_slice_membership(df, school_types = [], grades = [], sexes = [], outreac
 # Start of page
 #st.image("yiya.webp", width=100)
 st.title("BETA Camp Entrance Survey Responses")
+st.write(
+    """
+    This is a prototype of a dashboard to help BETA camp comunicate the impact of their programs through data. 
+    For now this prototype uses the entrance survey results from 2017. We hope to incorporate data from more
+    additional years to communicate how BETA is changing students perception of STEM and what demographics of 
+    student are particpating in BETA Camp.  
+    """
+)
 
 @st.cache  # add caching so we load the data only once
 def load_data():
@@ -49,31 +57,31 @@ df = load_data()
 #st.header("Why do different demographics engage with Yiya?")
 
 # Demographics
-st.subheader("Modify demographics")
-st.write(
+
+
+
+## Selection Dropdowns
+cols = st.columns(5)
+with st.sidebar:
+    st.markdown("# Modify demographics")
+    st.write(
     """
     Use the selection to restrict visualizations to demographics of interest. 
     For example, female students in public school.
     """
-)
-
-## Selection Dropdowns
-cols = st.columns(5)
-with cols[0]:
+    )
+  
     school_types = st.multiselect('School Type', df['Do you attend public or private school?'].unique())
-with cols[1]:
     grades = st.multiselect('Grade', options=df['Grade'].sort_values().unique())
-with cols[2]:
     sexes = st.multiselect('Sex', df['Gender'].unique())
-with cols[3]:
     outreach_channels = st.multiselect('Outreach Channel', df['How did you hear about the camp?'].unique())
 
-#Age range slider
-age_range = st.slider('Age',
-                    min_value=int(df['Age'].min()),
-                    max_value=int(df['Age'].max()),
-                    value=(int(df['Age'].min()), int(df['Age'].max()))
-                    )
+    #Age range slider
+    age_range = st.slider('Age',
+                        min_value=int(df['Age'].min()),
+                        max_value=int(df['Age'].max()),
+                        value=(int(df['Age'].min()), int(df['Age'].max()))
+                        )
 
 slice_labels = get_slice_membership(df, school_types, grades, sexes, outreach_channels, age_range)
 df = df[slice_labels]
@@ -83,6 +91,7 @@ show_raw_data = st.checkbox('Show raw data')
 if show_raw_data:
     st.write(df)
 
+#Gender and School Type
 gender_chart = alt.Chart(df).mark_bar().encode(
     x=alt.X("count()"),
     y= alt.Y("Gender"),
@@ -95,6 +104,11 @@ gender_chart = alt.Chart(df).mark_bar().encode(
 
 st.write(gender_chart)
 
+### OPINIONS
+st.markdown("# What are student opinions of STEM?")
+
+
+
 # Rating Questions
 rating_questions = [
     "How would you rate your level of interest in engineering/technology?",
@@ -103,37 +117,64 @@ rating_questions = [
     "On a scale of 1 to 10 how would you rate your ability in Science?"
 ]
 
-ratings1_chart = alt.Chart(df).mark_bar().encode(
-    x='Gender:O',
-    y=alt.Y('average(How would you rate your level of interest in engineering/technology?):Q', title="Averages"),
-    color="Gender",
+opinion_charts = alt.vconcat()
+for y_encoding in rating_questions:
+    opinion_chart = alt.Chart(df).mark_bar().encode(
+        y='Gender:O',
+        x=alt.X("average({})".format(y_encoding), title="Average"),
+        color="Gender",
+    ).properties(
+        title=y_encoding
+    )
+    opinion_charts&= opinion_chart
+
+opinion_charts
+
+# ratings1_chart = alt.Chart(df).mark_bar().encode(
+#     x='Gender:O',
+#     y=alt.Y('average(How would you rate your level of interest in engineering/technology?):Q', title="Averages"),
+#     color="Gender",
     
-).properties(
-    title="Interest in STEM"
+# ).properties(
+#     title="Interest in STEM"
+# )
+# ratings2_chart = alt.Chart(df).mark_bar().encode(
+#     x='Gender:O',
+#     y=alt.Y('average(How well do you think you understand what engineers do?):Q', title="Averages"),
+#     color ="Gender"
+# ).properties(
+#     title="Understanding of Eng Roles"
+# )
+
+
+# ratings_layered = alt.hconcat(ratings1_chart, ratings2_chart)
+# st.write(ratings_layered)
+
+st.markdown("# How does average Interest in STEM change by grade level?")
+
+grade_corr_chart2 = alt.Chart(df).mark_bar().encode(
+    x=alt.X("Grade:N"),
+    y=alt.Y('average(How would you rate your level of interest in engineering/technology?):Q', title=" Avg Interest in STEM"),
 )
-ratings2_chart = alt.Chart(df).mark_bar().encode(
-    x='Gender:O',
-    y=alt.Y('average(How well do you think you understand what engineers do?):Q', title="Averages"),
-    color ="Gender"
-).properties(
-    title="Understanding of Eng Roles"
-)
-
-
-ratings_layered = alt.hconcat(ratings1_chart, ratings2_chart)
-st.write(ratings_layered)
-
-st.markdown("# How does Interest in STEM change over grade level?")
+grade_corr_chart2 
 
 grade_corr_chart = alt.Chart(df).mark_point(size=60).encode(
-    x=alt.X("Grade:Q"),
-    y=alt.Y("How would you rate your level of interest in engineering/technology?:Q", title="Interest in STEM"),
-    color=alt.Color('Gender:N', scale=alt.Scale(scheme='dark2'))
+    x=alt.X("Grade:N"),
+    y=alt.Y('average(How would you rate your level of interest in engineering/technology?):Q', title="Avg Interest in STEM"),
+    color=alt.Color('Gender:N', scale=alt.Scale(scheme='dark2')),
+    size=alt.Size("count()"),
 ).properties(
     width= 400,
     height=400,
+    title="Average Interest in STEM by Grade"
 ).interactive()
 grade_corr_chart
+
+st.markdown("""
+    ## Insight 🎯
+    
+    Girls interest in STEM seem to lower over time as they progress in school"""
+)
 
 
 
