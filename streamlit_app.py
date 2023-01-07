@@ -205,4 +205,4 @@ grade_corr_chart
 
 # st.write(df)
 
-st.markdown("Learn more about BETA at our website [Carnegie Mellon University](https://www.cmu.edu).")
+st.markdown("Learn more about BETA at our [website](https://www.wearebeta.co).")
