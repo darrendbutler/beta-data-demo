@@ -3,7 +3,12 @@ import pandas as pd
 import altair as alt
 import numpy as np
 
-# For getting slices of demographic combinations
+
+############################################### HELPER FUNCTIONS START ##############################################
+
+# Description: This function returns a sliced selection of values from our data Provide slciing and cache function in the workshop
+# Input: the full frame and Boolean series for each field in the data
+# Outpt: Filtered dataframe that meets the selection criteria
 @st.cache
 def get_slice_membership(df, school_types = [], grades = [], sexes = [], outreach_channels = [], age_range = []):
     """
@@ -33,35 +38,39 @@ def get_slice_membership(df, school_types = [], grades = [], sexes = [], outreac
         
     return labels
 
-# Start of page
-#st.image("yiya.webp", width=100)
-st.title("BETA Camp Entrance Survey Responses")
-st.write(
-    """
-    This is a prototype of a dashboard to help BETA camp comunicate the impact of their programs through data. 
-    For now this prototype uses the entrance survey results from 2017. We hope to incorporate data from more
-    additional years to communicate how BETA is changing students perception of STEM and what demographics of 
-    student are particpating in BETA Camp.  
-    """
-)
-
 @st.cache  # add caching so we load the data only once
 def load_data():
     # Load the yiya data from assessments-questions.cleaned.csv
     file_name = "data/entrance_survey_2017_clean.csv"
     return pd.read_csv(file_name)
 
+# LOAD DATA
 df = load_data()
+############################################### HELPER FUNCTIONS END ##############################################
 
+############################################### PAGE START ##############################################
+#st.image("yiya.webp", width=100)
+st.title("BETA Camp Entrance Survey Responses Analysis")
+st.header("The Problem")
+st.write(
+    """
+    BETA Camp collects survey data from students but they lack a way to commnicate their impact with this data to the general public.
+    """
+)
 
-#st.header("Why do different demographics engage with Yiya?")
+st.header("Our Solution")
+st.write(
+    """
+    To solve this problem, we developed a dashboard to help BETA camp comunicate the impact of their programs through data. 
+    For now this prototype uses the entrance survey results from 2017. We hope to incorporate data from more
+    additional years to communicate how BETA is changing students perception of STEM and what demographics of 
+    student are particpating in BETA Camp.  
+    """
+)
 
 # Demographics
 
-
-
-## Selection Dropdowns
-cols = st.columns(5)
+######################################### DATA SELECTION SIDEBAR  START ##################################
 with st.sidebar:
     st.markdown("# Modify demographics")
     st.write(
@@ -91,6 +100,41 @@ show_raw_data = st.checkbox('Show raw data')
 if show_raw_data:
     st.write(df)
 
+############################################## DATA SELECTION SIDEBAR END ###############################################
+
+############################################### SIMPLE NON-Interactive VIZ START ##############################################
+
+st.header("How many students go to public vs private school?")
+school_type_donut_chart = alt.Chart(df).mark_arc(innerRadius=50).encode(
+    theta=alt.Theta(field="Do you attend public or private school?", type="nominal"),
+    color=alt.Color(field="Do you attend public or private school?", type="nominal"),
+).properties(
+    title="Public vs Private School"
+)
+st.write(school_type_donut_chart)
+
+### Gender and School Type Simple
+st.header("How many girls and boys does BETA camp educate?")
+#Create chart
+gender_chart_simple = alt.Chart(df).mark_bar().encode(
+    x=alt.X("count()"),
+    y= alt.Y("Gender"),
+).properties(
+    width=600
+).properties(
+    title="Gender Distribution by Public/Private School (simple)"
+)
+# Show Chart
+st.write("This visualization shows how many male vs female students BETA camp educated in 2017")
+st.write(gender_chart_simple)
+
+
+# ##################################### SIMPLE NON-Interactive VIZ END ##############################################
+
+
+
+###################################### INTERACTION VISUALIZATIONS START ##############################################
+
 #Gender and School Type
 gender_chart = alt.Chart(df).mark_bar().encode(
     x=alt.X("count()"),
@@ -99,15 +143,13 @@ gender_chart = alt.Chart(df).mark_bar().encode(
 ).properties(
     width=600
 ).properties(
-    title="Gender Distribution by Public/Private School"
+    title="Gender Distribution by Public/Private School (color coded)"
 )
 
 st.write(gender_chart)
 
 ### OPINIONS
 st.markdown("# What are student opinions of STEM?")
-
-
 
 # Rating Questions
 rating_questions = [
@@ -176,6 +218,10 @@ st.markdown("""
     Girls interest in STEM seem to lower over time as they progress in school"""
 )
 
+###################################### INTERACTION VISUALIZATIONS END ##############################################
+
+st.markdown("Learn more about BETA at our [website](https://www.wearebeta.co).")
+###################################### PAGE END  ####################################################################
 
 
 
@@ -246,4 +292,4 @@ st.markdown("""
 
 # st.write(df)
 
-st.markdown("Learn more about BETA at our [website](https://www.wearebeta.co).")
+
